@@ -1,4 +1,203 @@
-theme: minima
-title: "Calculatrice"
-author: "Jule Cotel"
-description: "Calculatrice de couts de prospection"
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur de coût réel de la prospection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result, .contact-form {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculateur de coût réel de prospection</h1>
+        <form id="calculator">
+            <label for="hourly-cost">Coût horaire de l'AE (€)</label>
+            <input type="number" id="hourly-cost" placeholder="Ex : 56.95" required>
+
+            <label for="hours-per-day">Heures de prospection par jour</label>
+            <input type="number" id="hours-per-day" placeholder="Ex : 2" required>
+
+            <label for="value-per-deal">Valeur moyenne d'un deal clos (€)</label>
+            <input type="number" id="value-per-deal" placeholder="Ex : 10000" required>
+
+            <label for="conversion-rate">Taux de conversion en closing (%)</label>
+            <input type="number" id="conversion-rate" placeholder="Ex : 20" required>
+
+            <label for="rdvs-per-month">Nombre de RDVs obtenus par mois</label>
+            <input type="number" id="rdvs-per-month" placeholder="Ex : 15" required>
+
+            <label for="unqualified-rdvs">RDVs non qualifiés par mois</label>
+            <input type="number" id="unqualified-rdvs" placeholder="Ex : 4" required>
+
+            <label for="no-shows">No-shows par mois</label>
+            <input type="number" id="no-shows" placeholder="Ex : 1" required>
+
+            <button type="button" onclick="calculateCost()">Calculer</button>
+        </form>
+        <div class="result" id="result"></div>
+        <div class="contact-form" id="contact-form">
+            <h2>Veuillez remplir vos coordonnées pour accéder aux résultats :</h2>
+            <label for="first-name">Prénom</label>
+            <input type="text" id="first-name" required>
+
+            <label for="last-name">Nom</label>
+            <input type="text" id="last-name" required>
+
+            <label for="job-title">Poste</label>
+            <input type="text" id="job-title" required>
+
+            <label for="company">Entreprise</label>
+            <input type="text" id="company" required>
+
+            <label for="phone">Téléphone</label>
+            <input type="tel" id="phone" required>
+
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+
+            <button type="button" onclick="showResults()">Valider et envoyer les données</button>
+        </div>
+    </div>
+
+    <script>
+        function calculateCost() {
+            const hourlyCost = parseFloat(document.getElementById('hourly-cost').value);
+            const hoursPerDay = parseFloat(document.getElementById('hours-per-day').value);
+            const valuePerDeal = parseFloat(document.getElementById('value-per-deal').value);
+            const conversionRate = parseFloat(document.getElementById('conversion-rate').value) / 100;
+            const rdvsPerMonth = parseInt(document.getElementById('rdvs-per-month').value);
+            const unqualifiedRdvs = parseInt(document.getElementById('unqualified-rdvs').value);
+            const noShows = parseInt(document.getElementById('no-shows').value);
+
+            if (isNaN(hourlyCost) || isNaN(hoursPerDay) || isNaN(valuePerDeal) || isNaN(conversionRate) || isNaN(rdvsPerMonth) || isNaN(unqualifiedRdvs) || isNaN(noShows)) {
+                alert("Veuillez remplir tous les champs correctement.");
+                return;
+            }
+
+            const monthlyProspectingHours = hoursPerDay * 20;
+            const directCost = monthlyProspectingHours * hourlyCost;
+            const potentialDeals = monthlyProspectingHours / 10;
+            const actualDeals = potentialDeals * conversionRate;
+            const lostRevenue = actualDeals * valuePerDeal;
+            const qualifiedRdvs = rdvsPerMonth - unqualifiedRdvs - noShows;
+            const totalCost = directCost + lostRevenue;
+            const costPerRdv = qualifiedRdvs > 0 ? totalCost / qualifiedRdvs : 0;
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <p><strong>Coût direct mensuel de la prospection :</strong> ${directCost.toFixed(2)} €</p>
+                <p><strong>Manque à gagner dû au closing :</strong> ${lostRevenue.toFixed(2)} €</p>
+                <p><strong>Coût total mensuel de la prospection :</strong> ${totalCost.toFixed(2)} €</p>
+                <p><strong>Coût par RDV qualifié honoré :</strong> ${costPerRdv.toFixed(2)} €</p>
+            `;
+
+            document.getElementById('contact-form').style.display = 'block';
+        }
+
+        function sendDataToSheet() {
+            const data = {
+                firstName: document.getElementById('first-name').value,
+                lastName: document.getElementById('last-name').value,
+                jobTitle: document.getElementById('job-title').value,
+                company: document.getElementById('company').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                hourlyCost: document.getElementById('hourly-cost').value,
+                hoursPerDay: document.getElementById('hours-per-day').value,
+                valuePerDeal: document.getElementById('value-per-deal').value,
+                conversionRate: document.getElementById('conversion-rate').value,
+                rdvsPerMonth: document.getElementById('rdvs-per-month').value,
+                unqualifiedRdvs: document.getElementById('unqualified-rdvs').value,
+                noShows: document.getElementById('no-shows').value
+            };
+
+            fetch("https://script.google.com/macros/s/AKfycbymwGlo9m_dV1N-G9dJHkyO3nPmWEqmrkTUDfadehNtrLbY-drtD7Pk7rZFxh2Uyj5ovQ/exec", {
+                method: "POST",
+                body: JSON.stringify(data),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === "success") {
+                    alert("Données envoyées avec succès !");
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert("Erreur lors de l'envoi des données.");
+                }
+            })
+            .catch(error => console.error("Erreur :", error));
+        }
+
+        function showResults() {
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const jobTitle = document.getElementById('job-title').value;
+            const company = document.getElementById('company').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+
+            if (!firstName || !lastName || !jobTitle || !company || !phone || !email) {
+                alert("Veuillez remplir tous les champs.");
+                return;
+            }
+
+            sendDataToSheet();
+        }
+    </script>
+</body>
+</html>
